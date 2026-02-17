@@ -6,6 +6,7 @@ import 'dart:io';
 /// Singleton DatabaseHelper class for managing SQLite database operations.
 /// Handles database creation, table schema, migrations, and provides
 /// the database instance to repositories.
+/// Just To test the git version
 class DatabaseHelper {
   // Singleton instance
   static final DatabaseHelper _instance = DatabaseHelper._internal();
