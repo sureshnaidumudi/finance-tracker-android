@@ -1,0 +1,267 @@
+Context & Role
+You are an expert Flutter + Dart engineer building a production-grade, offline-first personal finance tracking Android application.
+The app must be optimized for low storage usage, high performance, clean architecture, and long-term maintainability.
+No cloud, no images, no background sync, no analytics. Everything is local and deterministic.
+
+1. Platform & Constraints
+
+Platform: Android
+
+Framework: Flutter (CLI-only, no Android Studio)
+
+Development environment: Linux
+
+Storage constraint: Hard limit ~500 MB total app + data
+
+Database: SQLite (sqflite)
+
+State management: Simple (setState / ChangeNotifier), no heavy frameworks
+
+Architecture: Clean architecture (data / domain / presentation)
+
+2. Core Financial Model (Very Important)
+
+There is ONE real bank account (main account).
+
+Multiple payment modes exist:
+
+GPay
+
+PhonePe
+
+Debit Card
+
+Cash (manual)
+
+GPay Lite (wallet)
+
+PhonePe Lite (wallet)
+
+All non-wallet payment modes affect the ONE main bank account
+
+Wallets have independent balances
+
+Cash does not affect account or wallet balances, only records transactions.
+
+3. Transaction Rules
+
+Every transaction has:
+
+amount
+
+debit or credit
+
+payment mode
+
+optional wallet reference
+
+purpose/description
+
+transaction date
+
+derived month key (YYYY-MM)
+
+Debit = expense
+
+Credit = income/refund
+
+All balance updates must be atomic (transaction-safe).
+
+4. Database Design Requirements
+
+Create SQLite tables with proper indexing:
+
+Tables:
+
+accounts
+
+id
+
+name
+
+opening_balance
+
+current_balance
+
+created_at
+
+wallets
+
+id
+
+name
+
+balance
+
+created_at
+
+payment_modes
+
+id
+
+name
+
+type (ACCOUNT | WALLET | CASH)
+
+transactions
+
+id
+
+amount
+
+type (DEBIT | CREDIT)
+
+payment_mode_id
+
+wallet_id (nullable)
+
+purpose
+
+transaction_date
+
+month_key
+
+created_at
+
+monthly_summary
+
+month_key (PRIMARY KEY)
+
+opening_balance
+
+total_credit
+
+total_debit
+
+closing_balance
+
+Indexes must exist on:
+
+transactions.transaction_date
+
+transactions.month_key
+
+5. Monthly Accounting Logic
+
+Monthly summary is pre-calculated and stored, never recomputed from scratch.
+
+Opening balance of a month = closing balance of previous month.
+
+Closing balance = opening + credits − debits.
+
+This ensures fast startup and low CPU usage.
+
+6. Application Flow
+On App Start:
+
+Load current month summary.
+
+Load main account balance.
+
+Load all wallet balances.
+
+Display balances immediately without recalculating history.
+
+On Adding a Transaction:
+
+Validate input.
+
+Insert transaction record.
+
+Update:
+
+Main account balance OR
+
+Wallet balance (if wallet payment mode).
+
+Update monthly summary.
+
+Commit all operations in a single SQLite transaction.
+
+7. UI Requirements
+
+Home Screen:
+
+Main account balance (top)
+
+Wallet balances (compact cards or list)
+
+Monthly summary (opening, debit, credit, closing)
+
+Button to add transaction
+
+Add Transaction Screen:
+
+Amount input (numeric)
+
+Debit / Credit toggle
+
+Payment mode dropdown
+
+Wallet selector (only if wallet payment mode)
+
+Purpose text field
+
+Date picker (default today)
+
+UI must be minimal, fast, and offline-friendly.
+
+8. Storage & Performance Rules
+
+No images, videos, or binary blobs.
+
+Only structured numeric + text data.
+
+Paginate transaction lists.
+
+Never load entire transaction history into memory.
+
+App must remain fast even with 100,000+ transactions.
+
+9. Code Quality Expectations
+
+Use repository pattern.
+
+Use async/await properly.
+
+Handle SQLite errors safely.
+
+Avoid tight coupling between UI and database.
+
+Write readable, maintainable Dart code.
+
+Prefer clarity over cleverness.
+
+10. Copilot Behavior Instructions
+
+When generating code:
+
+Prefer explicit logic over magic abstractions.
+
+Keep functions small and testable.
+
+Comment business logic clearly.
+
+Do not introduce unnecessary dependencies.
+
+Assume this app will be used for years with large datasets.
+
+11. Out of Scope (Do NOT implement)
+
+Cloud sync
+
+Login/authentication
+
+Ads
+
+Notifications
+
+Background services
+
+AI categorization
+
+Charts unless explicitly requested
+
+12. Final Goal
+
+Produce a stable, offline, low-storage, personal finance ledger app that behaves like a deterministic accounting system, not a social or cloud product.
